@@ -12,7 +12,7 @@ Overview
 * Description: 
 
 Arduino Project , A controller board based on ATtiny85 and a h-bridge to control 
-a set of chasing swapped polarity Christmas LED lights. Can be used to replace the controller board on these very common LED chains if existing manufacturers controller board fails beyond repair.
+a set of battery operated chasing swapped polarity Christmas LED lights. Can be used to replace the controller board on these very common LED chains if existing manufacturers controller board fails beyond repair.
 
 * Author: Gavin Lyons
 * Copyright: GNU GPL v3

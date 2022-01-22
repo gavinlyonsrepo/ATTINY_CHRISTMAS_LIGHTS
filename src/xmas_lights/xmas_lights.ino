@@ -6,19 +6,20 @@
 */
 
 //******************** LIBRARIES ******************
-
-#include "tinysnore.h" // Include TinySnore Library
+// Include TinySnore Library needs small mod to lib , see URL , for attiny85 sleep
+#include "tinysnore.h" 
 
 //******************** DEFINES ********************
-#define RedYellowPin  PB0 
-#define BlueGreenPin  PB1 
-
-// loop takes 147 seconds = 2:43 minutes
-// for six hours ~= 150 loops
-#define LOOPTIME 150
+#define RedYellowPin  PB0
+#define BlueGreenPin  PB1
 
 
 //******************** GLOBALS ********************
+
+// loop takes 147 seconds = 2:43 minutes
+// for six hours ~= 150 loops
+const uint8_t LOOPTIME = 150;
+const uint32_t SLEEPTIME = 57600000; //   // 57,600,000 mS = 16 hours 
 
 enum LED_TYPE_t
 {
@@ -79,14 +80,11 @@ void loop() {
   // SLEEP
   pinMode(RedYellowPin, INPUT);
   pinMode(BlueGreenPin, INPUT);
- for (int i = 0; i < 12960; i++) // (18*60*60)/5 = 64800 /5 
-  {
-   snore(5000); // Deep sleeps for 5 seconds, (low power) then resumes from here
-  }
+
+  snore(SLEEPTIME); // Deep sleeps
+
   pinMode(RedYellowPin, OUTPUT);
   pinMode(BlueGreenPin, OUTPUT);
-
-
 
 } //END OF MAIN
 
@@ -177,11 +175,11 @@ void Display_Flash( LED_TYPE_t  LEDS_ON ,  uint16_t delayTime)
 void Display_Steady(void)
 {
   // red on five seconds
-  LEDS_on(LED_RED_YELLOW, 2500);
+  LEDS_on(LED_RED_YELLOW, 2000);
   // blue on five seocnds
-  LEDS_on(LED_BLUE_GREEN, 2500);
+  LEDS_on(LED_BLUE_GREEN, 2000);
   // all off five seconds
-  All_LEDS_off(5000);
+  All_LEDS_off(6000);
 }
 void  All_LEDS_off(uint16_t delayTime)
 {
