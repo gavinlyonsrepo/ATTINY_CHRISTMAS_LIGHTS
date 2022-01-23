@@ -1,3 +1,5 @@
+
+
 //********************** HEADER ***********************
 /*
   Name  :ATTINY_CHRISTMAS_LIGHT
@@ -7,21 +9,20 @@
 
 //******************** LIBRARIES ******************
 // Include TinySnore Library needs small mod to lib , see URL , for attiny85 sleep
-#include "tinysnore.h" 
+#include "tinysnore.h"
 
 //******************** DEFINES ********************
 #define RedYellowPin  PB0
-#define BlueGreenPin  PB1
-
+#define BlueGreenPin PB1
 
 //******************** GLOBALS ********************
 
-// loop takes 147 seconds = 2:43 minutes
-// for six hours ~= 150 loops
-const uint8_t LOOPTIME = 150;
-const uint32_t SLEEPTIME = 57600000; //   // 57,600,000 mS = 16 hours 
+// loop takes 120 seconds = 2:00 minutes
+// for six hours 180 loops 120 X 180 = 21600 S
+const uint8_t LOOPTIME = 180;
+const uint32_t SLEEPTIME = 64800000 ; //   // 64,800,000  mS = 18 hours
 
-enum LED_TYPE_t
+enum LED_TYPE_e
 {
   LED_RED_YELLOW = 1,
   LED_BLUE_GREEN = 2,
@@ -31,20 +32,18 @@ enum LED_TYPE_t
 
 // *************** FUNCTION PROTOTYPES *************
 void All_LEDS_off(uint16_t);
-void LEDS_on(LED_TYPE_t, uint16_t);
+void LEDS_on(LED_TYPE_e, uint16_t);
 void PWM_LEDS(uint8_t , bool , uint16_t );
 
-void Display_Steady(void);
-void Display_Flash(LED_TYPE_t, uint16_t);
-void Display_PWM(LED_TYPE_t, uint16_t);
+void Display_Steady(uint16_t);
+void Display_Flash(LED_TYPE_e, uint16_t);
+void Display_PWM(LED_TYPE_e, uint16_t);
 
+void Setup_pins(bool);
 
 //******************** SETUP ************************
 void setup() {
-  pinMode(RedYellowPin, OUTPUT);
-  pinMode(BlueGreenPin, OUTPUT);
-  digitalWrite(RedYellowPin, LOW);
-  digitalWrite(BlueGreenPin, LOW);
+  Setup_pins(true);
   delay(2000);
 }
 
@@ -53,38 +52,32 @@ void loop() {
 
   for (uint8_t LoopNumber  = 0; LoopNumber < LOOPTIME; LoopNumber ++)
   {
-
+ 
     // Display Steady on test
-    Display_Steady();
+    Display_Steady(2100);
 
-    // flash red + yellow only
+    // Flash patterns  
     Display_Flash(LED_RED_YELLOW, 100);
-    //  flash blue + green only
-    Display_Flash(LED_BLUE_GREEN, 100);
-    // flash both fast
+    Display_Flash(LED_BLUE_GREEN, 100);       
     Display_Flash(LED_BOTH , 500);
-    // flash both slow
-    Display_Flash(LED_BOTH , 1000);
+    Display_Flash(LED_BOTH , 700);
 
-    // PWM fade in and out red + yellow
+
+    // PWm patterns fade in and out LEDs
     Display_PWM(LED_RED_YELLOW , 50);
-    // PWM fade in and out blue + green
-    Display_PWM(LED_BLUE_GREEN , 50);
-    // PWM fade in and out both fast
-    Display_PWM(LED_BOTH , 5);
-    // PWM fade in and out both slow
-    Display_PWM(LED_BOTH , 25);
-
     delay(2000);
+    Display_PWM(LED_BLUE_GREEN , 50);
+
+    Display_Steady(1000);
+
+    
   } // for loop
-  // SLEEP
-  pinMode(RedYellowPin, INPUT);
-  pinMode(BlueGreenPin, INPUT);
 
+  // SLEEP 
+  Setup_pins(false);
   snore(SLEEPTIME); // Deep sleeps
-
-  pinMode(RedYellowPin, OUTPUT);
-  pinMode(BlueGreenPin, OUTPUT);
+  Setup_pins(true);
+ 
 
 } //END OF MAIN
 
@@ -110,10 +103,10 @@ void PWM_LEDS(uint8_t LEDS_ON, bool FadeUpDown, uint16_t delayTime )
       delay(delayTime);
     }
   }
-  All_LEDS_off(1);
+  All_LEDS_off(20);
 }
 
-void Display_PWM( LED_TYPE_t   LEDS_ON ,  uint16_t delayTime)
+void Display_PWM( LED_TYPE_e   LEDS_ON ,  uint16_t delayTime)
 {
 
   All_LEDS_off(20);
@@ -142,9 +135,9 @@ void Display_PWM( LED_TYPE_t   LEDS_ON ,  uint16_t delayTime)
   }
 
 }
-void Display_Flash( LED_TYPE_t  LEDS_ON ,  uint16_t delayTime)
+void Display_Flash( LED_TYPE_e  LEDS_ON ,  uint16_t delayTime)
 {
-  for (uint8_t flashloop = 1 ; flashloop < 10 ; flashloop ++)
+  for (uint8_t flashloop = 1 ; flashloop <= 10 ; flashloop ++)
   {
     switch (LEDS_ON) {
       case 1:
@@ -172,15 +165,13 @@ void Display_Flash( LED_TYPE_t  LEDS_ON ,  uint16_t delayTime)
 }
 
 
-void Display_Steady(void)
+void Display_Steady(uint16_t delayTime)
 {
-  // red on five seconds
-  LEDS_on(LED_RED_YELLOW, 2000);
-  // blue on five seocnds
-  LEDS_on(LED_BLUE_GREEN, 2000);
-  // all off five seconds
-  All_LEDS_off(6000);
+  LEDS_on(LED_RED_YELLOW, delayTime);
+  LEDS_on(LED_BLUE_GREEN, delayTime);
+  All_LEDS_off((delayTime*3) + 200);
 }
+
 void  All_LEDS_off(uint16_t delayTime)
 {
   digitalWrite(BlueGreenPin, LOW);
@@ -188,8 +179,23 @@ void  All_LEDS_off(uint16_t delayTime)
   delay(delayTime);
 }
 
+void Setup_pins(bool output)
+{
+  if (output == true)
+  {
+    pinMode(RedYellowPin, OUTPUT);
+    pinMode(BlueGreenPin, OUTPUT);
+    digitalWrite(RedYellowPin, LOW);
+    digitalWrite(BlueGreenPin, LOW);
+  }
+  else {
+    pinMode(RedYellowPin, INPUT);
+    pinMode(BlueGreenPin, INPUT);
+  }
 
-void LEDS_on(LED_TYPE_t RY_LEDS_ON, uint16_t delayTime)
+}
+
+void LEDS_on(LED_TYPE_e RY_LEDS_ON, uint16_t delayTime)
 {
   if (RY_LEDS_ON == 1)
   {
